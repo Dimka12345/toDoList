@@ -26,6 +26,8 @@ document.querySelector('#listTask').addEventListener('click', function(e){
         tasks[checkedTask][1].flag = true;
     }
 
+    console.log(tasks);
+
     let jsonString = JSON.stringify(tasks);
     localStorage.setItem(key, jsonString);
 
@@ -94,6 +96,7 @@ function clearTaskListChecked() {
         for(let i = 0; i < tasks.length; i++) {
             if (tasks[i][1].flag) {
                 tasks.splice(i, 1);
+                i--;
             }
         }
 
