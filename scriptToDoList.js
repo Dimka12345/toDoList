@@ -82,7 +82,8 @@ selectFilter.addEventListener('click', function (e) {
 })
 
 listOfTasks.addEventListener('click', function (e) {
-    if (e.target.tagName == 'LI') {
+    if ((e.target.tagName === 'LI') || (e.target.tagName === 'STRIKE')) {
+        console.log('hghgh');
         let id = e.target.closest('LI').id;
         let checkedTask = tasks.findIndex(item => item.id === id);
 
