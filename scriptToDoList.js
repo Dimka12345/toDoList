@@ -8,334 +8,418 @@ const selectFilter = document.getElementById('selectFilter');
 const inputTask = document.getElementById('inputTask');
 const dropdownBtn = document.getElementById('dropdown-Btn');
 const paginator = document.getElementById('paginator');
-const radBtnAllLabel = document.getElementById('btnradioAllLabel');
-const radBtnCheckLabel = document.getElementById('btnradioCheckLabel');
-const radBtnUncheckLabel = document.getElementById('btnradioUncheckLabel');
-const radBtnAll = document.getElementById('btnradioAll');
-const radBtnCheck = document.getElementById('btnradioCheck');
-const radBtnUncheck = document.getElementById('btnradioUncheck');
+const btnShowAll = document.getElementById('btnShowAll');
+const btnShowCheck = document.getElementById('btnShowCheck');
+const btnShowUncheck = document.getElementById('btnShowUncheck');
+const btnAddTask = document.getElementById('formBtnAddTask');
+const selectColor = document.getElementById('selectChooseColor');
+const btnDeleteAllTasks = document.getElementById('btnDeleteAllTasks');
+const btnDeleteCheckedTasks = document.getElementById('btnDeleteCheckedTasks');
+const modalDeleteAllTasks = document.getElementById('modalDeleteAllTasks');
+const modalDeleteCheckedTasks = document.getElementById('modalDeleteCheckedTasks');
+const modalBtnDeleteAllTasks = document.getElementById('modalBtnDeleteAllTasks');
+const modalBtnDeleteCheckedTasks = document.getElementById('modalBtnDeleteCheckedTasks');
 
 let pageCount = 0;
+let page = 1;
 let flagChecked;
 let flagUnchecked;
 let colorOfTask = 'black';
 dropdownBtn.style.color = 'white';
+btnShowAll.classList.add('active');
 
-let page = 1;
+const pageTask = 5;
+const colorSet = [
+	{ eng: 'black', rus: 'Чёрный' },
+	{ eng: 'red', rus: 'Красный' },
+	{ eng: 'blue', rus: 'Синий' },
+	{ eng: 'green', rus: 'Зелёный' },
+	{ eng: 'purple', rus: 'Фиолетовый' },
+]
 
+initializationDropdownBtnColor()
 initializationLocalStorage();
 showTaskList(1);
 
 function initializationLocalStorage() {
-    if (localStorage.getItem(key) !== null) {
-        tasks = JSON.parse(localStorage.getItem(key));
-    }
+	if (localStorage.getItem(key) !== null) {
+		tasks = JSON.parse(localStorage.getItem(key));
+	}
 }
 
-function changeColorOfTask(idTask) {
-    let colors = ['black', 'red', 'blue', 'green', 'purple'];
+function initializationDropdownBtnColor() {
+	selectColor.innerHTML = '';
+	let dropdownSet = '';
+	for (let i = 0; i < colorSet.length; i++) {
+		dropdownSet += `<li><a class="dropdown-item" href="#" data-color="${colorSet[i].eng}">${colorSet[i].rus}</a></li>`
+	}
+	selectColor.insertAdjacentHTML('beforeend', dropdownSet);
+}
 
-    let elementNumber = tasks.findIndex(item => item.id === idTask.toString());
-    let i = colors.findIndex(item => item === tasks[elementNumber].color);
+function changeColorOfTask(currentColor, idTask) {
+	let elementNumber = tasks.findIndex(item => item.id === idTask);
+	let newColor = colorSet.findIndex(item => item.eng === currentColor);
+	newColor++;
 
-    i = (i < 4) ? i + 1 : 0;
-    tasks[elementNumber].color = colors[i];
+	if ((newColor < colorSet.length) && (newColor !== 0)) {
+		tasks[elementNumber].color = colorSet[newColor].eng;
+	} else {
+		tasks[elementNumber].color = colorSet[0].eng;
+	}
 
-    refreshLocalStorage();
-    showTaskList(page);
+	refreshLocalStorage();
+	showTaskList(page);
 }
 
 function chooseColorOfTask(color) {
-    switch (color) {
-        case '1':
-            colorOfTask = 'black';
-            dropdownBtn.style.color = 'white';
-            break;
-        case '2':
-            colorOfTask = 'red';
-            dropdownBtn.style.color = 'red';
-            break;
-        case '3':
-            colorOfTask = 'blue';
-            dropdownBtn.style.color = 'blue';
-            break;
-        case '4':
-            colorOfTask = 'green';
-            dropdownBtn.style.color = 'green';
-            break;
-        case '5':
-            colorOfTask = 'purple';
-            dropdownBtn.style.color = 'purple';
-            break;
-    }
+	colorOfTask = color;
+	dropdownBtn.style.color = color;
 }
 
+selectColor.addEventListener('click', function (e) {
+	if (e.target.tagName === 'A') {
+		chooseColorOfTask(e.target.dataset.color);
+	}
+})
+
 function refreshLocalStorage() {
-    let jsonString = JSON.stringify(tasks);
-    localStorage.setItem(key, jsonString);
+	let jsonString = JSON.stringify(tasks);
+	localStorage.setItem(key, jsonString);
 }
 
 selectFilter.addEventListener('click', function (e) {
-    let id = e.target.closest('label').id;
-    id = id.slice(0, -5);
-    filter(id);
+	let id = e.target.closest('BUTTON').id;
+	filter(id);
 })
 
 listOfTasks.addEventListener('click', function (e) {
-    if ((e.target.tagName === 'LI') || (e.target.tagName === 'STRIKE')) {
-        console.log('hghgh');
-        let id = e.target.closest('LI').id;
-        let checkedTask = tasks.findIndex(item => item.id === id);
+	if ((e.target.tagName === 'LI') || (e.target.tagName === 'STRIKE')) {
+		let id = e.target.closest('LI').id;
+		let checkedTask = tasks.findIndex(item => item.id === id);
 
-        tasks[checkedTask].flag = (tasks[checkedTask].flag === true) ? false : true;
+		tasks[checkedTask].flag = !tasks[checkedTask].flag;
 
-        refreshLocalStorage();
-        showTaskList(page);
-    }
-});
+		refreshLocalStorage();
+		showTaskList(page);
+	}
+	if ((e.target.tagName === 'BUTTON') || (e.target.tagName === 'I')) {
+		if (e.target.closest('BUTTON').className === 'btn btn-primary js-changeColor') {
+			changeColorOfTask(e.target.closest('BUTTON').dataset.color, e.target.closest('BUTTON').dataset.idTask);
+		}
 
+		if (e.target.closest('BUTTON').className === 'btn btn-outline-primary js-editTask') {
+			editTask(e.target.closest('BUTTON').dataset.idTask);
+		}
 
-function addTask() {
-    getNewItem();
-    showTaskList(1);
-    return false;
-}
+		if (e.target.closest('BUTTON').className === 'btn btn-outline-primary js-deleteOneTask') {
+			deleteOneTask(e.target.closest('BUTTON').dataset.idTask);
+		}
+	}
+})
+
+paginator.addEventListener('click', function (e) {
+	if (((e.target.tagName === 'LI') || (e.target.tagName === 'A') || (e.target.tagName === 'SPAN')) 
+	&& (e.target.closest('LI').className !== 'page-item disabled') && (e.target.closest('A').id !== null)) {
+		switch (e.target.closest('A').id) {
+			case 'previous':
+				previousPage(Number(e.target.closest('A').dataset.pageCount));
+				break;
+			case 'first':
+				showTaskList(1);
+				break;
+			case 'next':
+				nextPage(Number(e.target.closest('A').dataset.pageCount));
+				break;
+			case 'last':
+				showTaskList(Number(e.target.closest('A').dataset.pageCount));
+				break;
+		}
+	}
+})
+
+btnAddTask.addEventListener('click', function (e) {
+	e.preventDefault();
+	getNewItem();
+	pageCount = Math.ceil(tasks.length / pageTask);
+	if (!flagUnchecked) {
+		filter('btnShowAll', pageCount);
+	} else { 
+		filter('btnShowUncheck', pageCount);	
+	}
+})
+
+btnDeleteAllTasks.addEventListener('click', function () {
+	if (tasks.length !== 0) {
+		let modal = new bootstrap.Modal(modalDeleteAllTasks, {
+			keyboard: false
+		});
+		modal.show()
+	}
+})
+
+btnDeleteCheckedTasks.addEventListener('click', function () {
+	let checkedArray = tasks.filter(item => item.flag === true);
+	if (checkedArray.length !== 0) {
+		let modal = new bootstrap.Modal(modalDeleteCheckedTasks, {
+			keyboard: false
+		});
+		modal.show()
+	}
+})
+
+modalBtnDeleteAllTasks.addEventListener('click', function () {
+	deleteTaskAll();
+})
+
+modalBtnDeleteCheckedTasks.addEventListener('click', function () {
+	deleteTaskChecked();
+})
 
 function deleteTaskChecked() {
-    clearTaskListChecked();
-    showTaskList(1);
+	clearTaskListChecked();
+	if (!flagChecked && !flagUnchecked) {
+		if (pageCount < page) {
+			showTaskList(pageCount)
+		} else {
+			showTaskList(page)
+		}
+	} else if (flagUnchecked) {
+		showTaskList(page);
+	} else if (flagChecked) {
+		showTaskList(1);
+	}
 }
 
 function deleteTaskAll() {
-    clearTaskListAll();
-    showTaskList(1);
+	clearTaskListAll();
+	showTaskList(1);
 }
 
 function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+	return unsafe
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }
 
 function getNewItem() {
-    if (inputTask.value !== '') {
-        inputTask.value = escapeHtml(inputTask.value);
-        let id = Date.now().toString();
+	if (inputTask.value !== '') {
+		inputTask.value = escapeHtml(inputTask.value);
+		let id = Date.now().toString();
 
-        tasks.push({ id: id, task: inputTask.value, flag: false, color: colorOfTask });
+		tasks.push({ id: id, task: inputTask.value, flag: false, color: colorOfTask });
 
-        refreshLocalStorage();
+		refreshLocalStorage();
 
-        inputTask.value = '';
-        colorOfTask = 'black';
-        dropdownBtn.style.color = 'white';
-    }
+		inputTask.value = '';
+		colorOfTask = 'black';
+		dropdownBtn.style.color = 'white';
+	}
 }
 
 function renderPagination(page, countTask) {
-    paginator.innerHTML = '';
-    let paginatorData = '';
-    const pageTask = 5;
-    pageCount = Math.ceil(countTask / pageTask);
+	paginator.innerHTML = '';
+	let paginatorData = '';
+	pageCount = Math.ceil(countTask / pageTask);
 
-    if (countTask > pageTask) {
-        switch (page) {
-            case 1:
-                paginatorData =
-                    `<li class="page-item disabled"><a class="page-link">
+	if (countTask > pageTask) {
+		switch (page) {
+			case 1:
+				paginatorData =
+					`<li class="page-item disabled"><a class="page-link">
                 <span aria-hidden="true">&laquo;</span></a></li>
                 <li class="page-item active"><a class="page-link">1</a></li>
                 <li class="page-item"><a class="page-link">..</a></li>
-                <li class="page-item"><a class="page-link" href="javascript:showTaskList(pageCount)">${pageCount}</a></li> 
-                <li class="page-item"><a class="page-link" href="javascript:nextPage(pageCount)">
+                <li class="page-item"><a class="page-link" id="last" data-page-count="${pageCount}">${pageCount}</a></li> 
+                <li class="page-item"><a class="page-link" id="next" data-page-count="${pageCount}">
                 <span aria-hidden="true">&raquo;</span></a></li>`;
-                break;
-            case pageCount:
-                paginatorData =
-                    `<li class="page-item"><a class="page-link" href="javascript:previousPage(pageCount)">
+				break;
+			case pageCount:
+				paginatorData =
+					`<li class="page-item"><a class="page-link" id="previous" data-page-count="${pageCount}">
                 <span aria-hidden="true">&laquo;</span></a></li>
-                <li class="page-item"><a class="page-link" href="javascript:showTaskList(1)">1</a></li>\n
+                <li class="page-item"><a class="page-link" id="first">1</a></li>
                 <li class="page-item"><a class="page-link">..</a></li>
                 <li class="page-item active"><a class="page-link">${pageCount}</a></li>
                 <li class="page-item disabled"><a class="page-link"><span aria-hidden="true">&raquo;</span></a></li>`
-                break;
-            default:
-                paginatorData =
-                    `<li class="page-item"><a class="page-link" href="javascript:previousPage(pageCount)">
+				break;
+			default:
+				paginatorData =
+					`<li class="page-item"><a class="page-link" id="previous" data-page-count="${pageCount}">
                 <span aria-hidden="true">&laquo;</span></a></li>
-                <li class="page-item"><a class="page-link" href="javascript:showTaskList(1)">1</a></li>
+                <li class="page-item"><a class="page-link" id="first">1</a></li>
                 <li class="page-item active"><a class="page-link">${page}</a></li>
-                <li class="page-item"><a class="page-link" href="javascript:showTaskList(pageCount)">${pageCount}</a></li>
-                <li class="page-item"><a class="page-link" href="javascript:nextPage(pageCount)">
+                <li class="page-item"><a class="page-link" id="last" data-page-count="${pageCount}">${pageCount}</a></li>
+                <li class="page-item"><a class="page-link" id="next" data-page-count="${pageCount}">
                 <span aria-hidden="true">&raquo;</span></a></li>`;
-                break;
-        }
-    } else {
-        paginatorData = `<li class="page-item disabled">
-                <a class="page-link" aria-disabled="true"><<</a></li>
+				break;
+		}
+	} else {
+		paginatorData = `<li class="page-item disabled">
+                <a class="page-link" aria-disabled="true"><span aria-hidden="true">&laquo;</span></a></li>
                 <li class="page-item active"><a class="page-link">1</a></li>
-                <li class="page-item"><a class="page-link">..</a></li>
-                <li class="page-item disabled"><a class="page-link">1</a></li>
-                <li class="page-item disabled"><a class="page-link">>></a></li>`;
-    }
-    paginator.insertAdjacentHTML('beforeend', paginatorData);
+                <li class="page-item disabled"><a class="page-link"><span aria-hidden="true">&raquo;</span></a></li>`;
+	}
+	paginator.insertAdjacentHTML('beforeend', paginatorData);
 }
 
 function nextPage(totalPage) {
-    page = (page < totalPage) ? page + 1 : totalPage;
-    showTaskList(page);
+	page = (page < totalPage) ? page + 1 : totalPage;
+	showTaskList(page);
 }
 
 function previousPage(totalPage) {
-    page = ((page > 1) || (page === totalPage)) ? page - 1 : totalPage;
-    showTaskList(page);
+	page = ((page > 1) || (page === totalPage)) ? page - 1 : totalPage;
+	showTaskList(page);
 }
 
 function showTaskList(currentPage) {
-    listOfTasks.innerHTML = '';
+	listOfTasks.innerHTML = '';
 
-    page = currentPage;
+	page = currentPage;
 
-    let taskSet = '';
-    let checked = 0;
-    let unchecked = 0;
+	let taskSet = '';
+	let checked = 0;
+	let unchecked = 0;
 
-    let filteredArray = [];
+	let filteredArray = [];
 
-    switch (true) {
-        case flagChecked:
-            filteredArray = tasks.filter(function (item) {
-                return item.flag === true;
-            });
-            break;
-        case flagUnchecked:
-            filteredArray = tasks.filter(function (item) {
-                return item.flag === false;
-            });
-            break;
-        default:
-            filteredArray = tasks.filter(function (item) {
-                return item;
-            });
-            break;
-    }
-    tasks.forEach(element => {
-        if (element.flag === true) {
-            checked++;
-        }
-        else unchecked++;
-    });
+	switch (true) {
+		case flagChecked:
+			filteredArray = tasks.filter(item => item.flag);
+			break;
+		case flagUnchecked:
+			filteredArray = tasks.filter(item => !item.flag);
+			break;
+		default:
+			filteredArray = tasks;
+			break;
+	}
+	tasks.forEach(element => {
+		if (element.flag) {
+			checked++;
+		}
+		else unchecked++;
+	});
 
-    renderPagination(currentPage, filteredArray.length);
+	renderPagination(currentPage, filteredArray.length);
+	if (pageCount < page && filteredArray.length !== 0) currentPage = pageCount;
 
-    for (let i = currentPage * 5 - 5; ((i < currentPage * 5) && (i < filteredArray.length)); i++) {
-        if (filteredArray[i].flag === true) {
-            taskSet += `<div class="row mt-2"><div class="col-9 text-end"><li class="list-group-item text-start" id=
-                ${filteredArray[i].id}><strike>${i + 1}. ${filteredArray[i].task}</strike></li></div>`;
-        } else {
-            taskSet += `<div class="row mt-2"><div class="col-9 text-end"><li class="list-group-item text-start" id=
-                ${filteredArray[i].id}>${i + 1}. ${filteredArray[i].task}</li></div>`;
-        }
-        taskSet +=
-            `<div class="col-3 text-start">
-                <button type="button" class="btn btn-primary" onclick="changeColorOfTask(${filteredArray[i].id})">
-                <i class="bi bi-palette" style="font-size: 1rem; color: white;"></i></button>
-                <div class="btn-group" role="group"><button type="button" id=${filteredArray[i].id + "edit"} 
-                class="btn btn-outline-primary" onclick="editTask(${filteredArray[i].id})">
-                <i class="bi bi-pencil" style="font-size: 1rem; color: cornflowerblue"></i>
+	for (let i = currentPage * 5 - 5; ((i < currentPage * 5) && (i < filteredArray.length)); i++) {
+		if (filteredArray[i].flag === true) {
+			taskSet += `<div class="row mt-2 justify-content-between"><div class="col-12 col-lg-7 col-xl-8 text-end"><li class="list-group-item text-start" id=
+                ${filteredArray[i].id} style="color:${filteredArray[i].color}"><strike>${i + 1}. ${filteredArray[i].task}</strike></li></div>`;
+		} else {
+			taskSet += `<div class="row mt-2 justify-content-between"><div class="col-12 col-lg-7 col-xl-8 text-end"><li class="list-group-item text-start" id=
+                ${filteredArray[i].id} style="color:${filteredArray[i].color}">${i + 1}. ${filteredArray[i].task}</li></div>`;
+		}
+		taskSet +=
+			`<div class="col-1 my-3 my-lg-0">
+                <button type="button" data-id-task="${filteredArray[i].id}" data-color="${filteredArray[i].color}" class="btn btn-primary js-changeColor">
+                <i class="bi bi-palette"></i></button></div>
+                <div class="col-11 my-3 col-lg-4 my-lg-0 col-xl-3 text-end"><div class="btn-group" role="group"><button type="button" data-id-task="${filteredArray[i].id}" 
+                class="btn btn-outline-primary js-editTask">
+                <i class="bi bi-pencil"></i>
                 Редактировать</button>
-                <button type="button" id=${filteredArray[i].id + "delete"} 
-                class="btn btn-outline-primary" onclick="deleteOneTask(${filteredArray[i].id})">
-                <i class="bi bi-trash" style="font-size: 1rem; color: cornflowerblue"></i> Удалить</button></div></div></div>`;
-    }
+                <button type="button" data-id-task="${filteredArray[i].id}" 
+                class="btn btn-outline-primary js-deleteOneTask">
+                <i class="bi bi-trash"></i> Удалить</button></div></div></div>`;
+	}
 
-    listOfTasks.insertAdjacentHTML('beforeend', taskSet);
-    for (let i = currentPage * 5 - 5; ((i < currentPage * 5) && (i < filteredArray.length)); i++) {
-        document.getElementById(filteredArray[i].id).style.color = filteredArray[i].color;
-    }
+	listOfTasks.insertAdjacentHTML('beforeend', taskSet);
 
-    radBtnAllLabel.textContent = 'Показать все (' + tasks.length + ')';
-    radBtnCheckLabel.textContent = 'Выполненные (' + checked + ')';
-    radBtnUncheckLabel.textContent = 'Невыполненные (' + unchecked + ')';
+	btnShowAll.textContent = 'Показать все (' + tasks.length + ')';
+	btnShowCheck.textContent = 'Выполненные (' + checked + ')';
+	btnShowUncheck.textContent = 'Невыполненные (' + unchecked + ')';
 }
 
 function clearTaskListChecked() {
-    if (tasks.length !== 0) {
-        tasks = tasks.filter(function (element) {
-            return !element.flag;
-        });
-        refreshLocalStorage();
-    }
+	if (tasks.length !== 0) {
+		tasks = tasks.filter(function (element) {
+			return !element.flag;
+		});
+		refreshLocalStorage();
+	}
 }
 
 function clearTaskListAll() {
-    localStorage.removeItem(key);
-    tasks.length = 0;
+	localStorage.removeItem(key);
+	tasks.length = 0;
 
-    listOfTasks.innerHTML = "";
+	listOfTasks.innerHTML = "";
 }
 
-function filter(id) {
-    radBtnCheck.classList.remove('checked');
-    radBtnUncheck.classList.remove('checked');
-    radBtnAll.classList.remove('checked');
+function filter(id, innerPage) {
+	btnShowCheck.classList.remove('active');
+	btnShowUncheck.classList.remove('active');
+	btnShowAll.classList.remove('active');
 
-    flagChecked = false;
-    flagUnchecked = false;
+	flagChecked = false;
+	flagUnchecked = false;
+	let outerPage = 1;
+	if (innerPage !== undefined) outerPage = innerPage; 
 
-    switch (id) {
-        case radBtnAll.id:
-            radBtnAll.classList.add('checked');
-            showTaskList(1);
-            break;
-        case radBtnCheck.id:
-            radBtnCheck.classList.add('checked');
-            flagChecked = true;
-            showTaskList(1);
-            break;
-        case radBtnUncheck.id:
-            radBtnUncheck.classList.add('checked');
-            flagUnchecked = true;
-            showTaskList(1);
-            break;
-    }
+	switch (id) {
+		case btnShowAll.id:
+			btnShowAll.classList.add('active');
+			showTaskList(outerPage);
+			break;
+		case btnShowCheck.id:
+			btnShowCheck.classList.add('active');
+			flagChecked = true;
+			showTaskList(outerPage);
+			break;
+		case btnShowUncheck.id:
+			btnShowUncheck.classList.add('active');
+			flagUnchecked = true;
+			showTaskList(outerPage);
+			break;
+	}
 }
 
 function editTask(idTask) {
-    let editableTask = document.getElementById(idTask);
-    editableTask.contentEditable = true;
+	let editableTask = document.getElementById(idTask);
 
-    let range = document.createRange();  ///////пока хз как работает
-    let select = window.getSelection();
+	let position = editableTask.textContent.indexOf(".") + 2;
 
-    let position = editableTask.textContent.indexOf(".") + 1;
-    editableTask.textContent = editableTask.textContent.slice(position);
+	let editStr = editableTask.textContent.slice(position);
 
-    range.setStart(editableTask, 1);
-    range.collapse(true);
-    select.removeAllRanges();
-    select.addRange(range);
-
-    editableTask.focus();
-
-    editableTask.addEventListener("focusout", function () {
-        if (editableTask.textContent !== '') {
-            editableTask.textContent = escapeHtml(editableTask.textContent);
-            let idTaskInArray = tasks.findIndex(item => item.id === idTask.toString());
-            tasks[idTaskInArray].task = editableTask.textContent;
-            refreshLocalStorage();
-        }
-        showTaskList(page);
-    });
+	if (editableTask.outerHTML) {
+		editableTask.outerHTML = `<input type="text" id="inputEditTask" class="form-control" value="${editStr}"></input>`;
+		let inputEditTask = document.getElementById('inputEditTask');
+		setTimeout(function () { inputEditTask.selectionStart = inputEditTask.selectionEnd = 10000; }, 0);
+		inputEditTask.focus();
+		inputEditTask.addEventListener("keyup", function (e) {
+			if (e.code === 'Enter') {
+				if (inputEditTask.value !== '') {
+					let idTaskInArray = tasks.findIndex(item => item.id === idTask.toString());
+					tasks[idTaskInArray].task = inputEditTask.value;
+					refreshLocalStorage();
+				}
+				showTaskList(page);
+			}
+		});
+		inputEditTask.addEventListener("focusout", function () {
+			if (inputEditTask.value !== '') {
+				let idTaskInArray = tasks.findIndex(item => item.id === idTask.toString());
+				tasks[idTaskInArray].task = inputEditTask.value;
+				refreshLocalStorage();
+			}
+			showTaskList(page);
+		});
+	}
 }
 
 function deleteOneTask(idTask) {
-    tasks = tasks.filter(function (item) {
-        return !(item.id === idTask.toString());
-    });
-    refreshLocalStorage();
-    showTaskList(1);
+	tasks = tasks.filter(function (item) {
+		return (item.id !== idTask.toString());
+	});
+	refreshLocalStorage();
+	if (pageCount < page) {
+		showTaskList(pageCount)
+	} else {
+		showTaskList(page)
+	}
 }

@@ -14,29 +14,20 @@
   <div class="container mt-5">
     <div class="row">
       <div class="col-12">
-        <form class="row" onsubmit="return addTask()">
-          <div class="col-9">
-            <label for="inputPassword2" class="visually-hidden">Password</label>
+        <form class="row g-5">
+          <div class="col-7 col-sm-7 col-md-8 col-lg-9 col-xl-9 col-xxl-9">
             <input type="text" class="form-control" id="inputTask" placeholder="Введите новую задачу">
           </div>
-          <div class="col-3 text-end">
+          <div class="col-5 col-sm-5 col-md-4 col-lg-3 col-xl-3 col-xxl-3 text-end">
             <div class="btn-group">
-              <button type="submit" class="btn btn-primary">Добавить задачу</button>
+              <button type="submit" id="formBtnAddTask" class="btn btn-primary">Добавить задачу</button>
               <button type="button" id="dropdown-Btn"
                 class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown"
                 aria-expanded="false">
                 <span class="visually-hidden">Toggle Dropdown</span>
               </button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" id="1" href="javascript:chooseColorOfTask('1')">Черный</a>
-                </li>
-                <li><a class="dropdown-item" id="2" href="javascript:chooseColorOfTask('2')">Красный</a>
-                </li>
-                <li><a class="dropdown-item" id="3" href="javascript:chooseColorOfTask('3')">Синий</a>
-                </li>
-                <li><a class="dropdown-item" id="4" href="javascript:chooseColorOfTask('4')">Зелёный</a>
-                </li>
-                <li><a class="dropdown-item" id="5" href="javascript:chooseColorOfTask('5')">Фиолетовый</a></li>
+              <ul class="dropdown-menu" id="selectChooseColor">
+                
               </ul>
             </div>
           </div>
@@ -50,43 +41,39 @@
         </ul>
       </div>
     </div>
-    <div class="row mt-4">
-      <div class="col-5">
-        <div class="btn-group" role="group" id="selectFilter">
-          <input type="radio" class="btn-check" id="btnradioAll" name="btnradio" autocomplete="off">
-          <label class="btn btn-outline-primary" id="btnradioAllLabel" for="btnradio1">Показать все</label>
-
-          <input type="radio" class="btn-check" id="btnradioCheck" name="btnradio" autocomplete="off">
-          <label class="btn btn-outline-primary" id="btnradioCheckLabel" for="btnradio2">Выполненные</label>
-
-          <input type="radio" class="btn-check" id="btnradioUncheck" name="btnradio" autocomplete="off">
-          <label class="btn btn-outline-primary" id="btnradioUncheckLabel" for="btnradio3">Невыполненные</label>
+    <div class="row mt-4 justify-content-between">
+      <div class="col-12 col-lg-7 col-xxl-6 text-center">
+        <div class="btn-group" role="group" id="selectFilter" aria-label="Basic outlined example">
+          <button type="button" class="btn btn-outline-primary" id="btnShowAll">Показать все</button>
+          <button type="button" class="btn btn-outline-primary" id="btnShowCheck">Выполненные</button>
+          <button type="button" class="btn btn-outline-primary" id="btnShowUncheck">Невыполненные</button>
         </div>
       </div>
-      <div class="col-4 text-end">
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalDeleteChecked">
-          <i class="bi bi-check-circle" style="font-size: 1rem; color: rgb(255, 255, 255);"></i> Удалить
+      <div class="col-6 my-4 col-lg-3 my-lg-0">
+        <button type="button" id="btnDeleteCheckedTasks" class="btn btn-success">
+          <i class="bi bi-check-circle"></i> Удалить
           выполненные
           задачи</button>
+          
       </div>
-      <div class="col-3 text-start">
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDeleteAll">
-          <i class="bi bi-trash" style="font-size: 1rem; color: rgb(255, 255, 255);"></i> Очистить список
+      <div class="col-5 my-4 col-md-6 col-lg-2 my-lg-0 col-xxl-3 text-end">
+        <button type="button" id="btnDeleteAllTasks" class="btn btn-danger">
+          <i class="bi bi-trash"></i> Очистить список
           задач</button>
       </div>
+
     </div>
-    <div class="row mt-5 justify-content-center">
-      <div class="col-4">
-        <nav class="justify-content-center">
-          <ul class="pagination" id="paginator">
+    <div class="row mt-5">
+      <div class="col">
+        <nav>
+          <ul class="pagination justify-content-center" id="paginator">
 
           </ul>
         </nav>
       </div>
-
     </div>
   </div>
-  <div class="modal" id="modalDeleteChecked" tabindex="-1">
+  <div class="modal" id="modalDeleteCheckedTasks" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -94,17 +81,16 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Вы уверены,что хотите удалить выполненные задачи?</p>
+          <p>Вы уверены, что хотите удалить выполненные задачи?</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
-            onclick="deleteTaskChecked()">Да</button>
+          <button type="button" id="modalBtnDeleteCheckedTasks" class="btn btn-primary" data-bs-dismiss="modal">Да</button>
         </div>
       </div>
     </div>
   </div>
-  <div class="modal" id="modalDeleteAll" tabindex="-1">
+  <div class="modal" id="modalDeleteAllTasks" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -112,11 +98,11 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Вы уверены,что хотите удалить все задачи?</p>
+          <p>Вы уверены, что хотите удалить все задачи?</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="deleteTaskAll()">Да</button>
+          <button type="button" id="modalBtnDeleteAllTasks" class="btn btn-primary" data-bs-dismiss="modal">Да</button>
         </div>
       </div>
     </div>
